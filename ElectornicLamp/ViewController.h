@@ -10,6 +10,10 @@
 
 @interface ViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UITextField *tv_ssid;
+@property (weak, nonatomic) IBOutlet UITextField *tv_bssid;
+@property (weak, nonatomic) IBOutlet UITextField *tv_password;
+@property (weak, nonatomic) IBOutlet UIButton *bt_confirmcancel;
 
 @end
 

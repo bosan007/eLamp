@@ -81,12 +81,12 @@
     // do confirm
     if (self._isConfirmState)
     {
-        NSString *apPwd = self._pwdTextView.text;
-        NSString *apBssid = self.bssidLabel.text;
-        int taskCount = [self._taskResultCountTextView.text intValue];
-        BOOL broadcast = self.broadcastSC.selectedSegmentIndex == 0 ? YES : NO;
+        NSString *apSsid = self.tv_ssid.text;
+        NSString *apPwd = self.tv_password.text;
+        NSString *apBssid = self.tv_bssid.text;
+        int taskCount = 1;
+        BOOL broadcast = YES;
         
-        [self._spinner startAnimating];
         [self enableCancelBtn];
         NSLog(@"ESPViewController do confirm action...");
         dispatch_queue_t  queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
@@ -96,7 +96,6 @@
             NSArray *esptouchResultArray = [self executeForResultsWithSsid:apSsid bssid:apBssid password:apPwd taskCount:taskCount broadcast:broadcast];
             // show the result to the user in UI Main Thread
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self._spinner stopAnimating];
                 [self enableConfirmBtn];
                 
                 ESPTouchResult *firstResult = [esptouchResultArray objectAtIndex:0];
@@ -142,12 +141,53 @@
     // do cancel
     else
     {
-        [self._spinner stopAnimating];
         [self enableConfirmBtn];
         NSLog(@"ESPViewController do cancel action...");
         [self cancel];
     }
 }
 
+#pragma mark - the example of how to cancel the executing task
+
+- (void) cancel
+{
+    [self._condition lock];
+    if (self._esptouchTask != nil)
+    {
+        [self._esptouchTask interrupt];
+    }
+    [self._condition unlock];
+}
+
+#pragma mark - the example of how to use executeForResults
+- (NSArray *) executeForResultsWithSsid:(NSString *)apSsid bssid:(NSString *)apBssid password:(NSString *)apPwd taskCount:(int)taskCount broadcast:(BOOL)broadcast
+{
+    [self._condition lock];
+    self._esptouchTask = [[ESPTouchTask alloc]initWithApSsid:apSsid andApBssid:apBssid andApPwd:apPwd];
+    // set delegate
+    [self._esptouchTask setEsptouchDelegate:self._esptouchDelegate];
+    [self._esptouchTask setPackageBroadcast:broadcast];
+    [self._condition unlock];
+    NSArray * esptouchResults = [self._esptouchTask executeForResults:taskCount];
+    NSLog(@"ESPViewController executeForResult() result is: %@",esptouchResults);
+    return esptouchResults;
+}
+
+// enable confirm button
+- (void)enableConfirmBtn
+{
+    self._isConfirmState = YES;
+    [self.bt_confirmcancel setTitle:@"Confirm" forState:UIControlStateNormal];
+}
+
+// enable cancel button
+- (void)enableCancelBtn
+{
+    self._isConfirmState = NO;
+    [self.bt_confirmcancel setTitle:@"Cancel" forState:UIControlStateNormal];
+}
+
+- (IBAction)onTapConfirm:(id)sender {
+}
 
 @end
