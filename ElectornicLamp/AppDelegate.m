@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "ViewController.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
 #import "ESPCore/ESP_NetUtil.h"
 
@@ -41,8 +42,14 @@
 }
 
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+// it is used to show the current connected wifi's Ssid
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    ViewController *vc = (ViewController *)self.window.rootViewController;
+    NSDictionary *netInfo = [self fetchNetInfo];
+    vc.tv_ssid.text = [netInfo objectForKey:@"SSID"];
+    vc.tv_bssid.text = [netInfo objectForKey:@"BSSID"];
 }
 
 
